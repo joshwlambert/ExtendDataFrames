@@ -228,10 +228,6 @@ object of our class is valid, a so-called validator function.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">validate_birthdays</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span></span>
-<span>    <span class="st">"`birthdays` object must be of type `birthdays`"</span> <span class="op">=</span></span>
-<span>      <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">inherits</a></span><span class="op">(</span><span class="va">x</span>, <span class="st">"birthdays"</span>, which <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="fl">1L</span><span class="op">)</span>,</span>
-<span>    <span class="st">"`birthdays` object should inherit from data.frames"</span> <span class="op">=</span></span>
-<span>      <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">inherits</a></span><span class="op">(</span><span class="va">x</span>, <span class="st">"data.frame"</span>, which <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="fl">2L</span><span class="op">)</span>,</span>
 <span>    <span class="st">"input must contain 'name' and 'birthday' columns"</span> <span class="op">=</span></span>
 <span>      <span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"name"</span>, <span class="st">"birthday"</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>    <span class="st">"names must be a character"</span> <span class="op">=</span></span>
@@ -252,6 +248,83 @@ during subsetting.</p>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>birthdays[, <span class="sc">-</span><span class="dv">1</span>]</span>
 <span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    Error <span class="cf">in</span> <span class="fu">validate_birthdays</span>(<span class="fu">NextMethod</span>()) <span class="sc">:</span></span>
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    input must contain <span class="st">'name'</span> and <span class="st">'birthday'</span> columns</span></code></pre></div>
+<p>The second design option is the check whether the class is valid, and
+if not downgrade the class to the superclass, in our case a data frame.
+This is done by not only validating the object during subsetting but to
+check whether it is a valid class object, and then either ensuring all
+of the attributes of the subclass – in our case <code>birthdays</code> –
+are maintained, or attributes are stripped and only the attributes of
+the base superclass – in our case <code>data.frame</code> – are
+kept.</p>
+<p><strong><em>Important note: this section of the post relies heavily
+on code from</em></strong> <a href="https://github.com/DavisVaughan/2020-06-01_dplyr-vctrs-compat" class="external-link uri">https://github.com/DavisVaughan/2020-06-01_dplyr-vctrs-compat</a>.</p>
+<p>The four functions that are required to be added to ensure our class
+is correctly handled when invaliding it are:</p>
+<ul>
+<li><code><a href="../reference/birthdays_reconstruct.html">birthdays_reconstruct()</a></code></li>
+<li><code><a href="../reference/birthdays_can_reconstruct.html">birthdays_can_reconstruct()</a></code></li>
+<li><code><a href="../reference/df_reconstruct.html">df_reconstruct()</a></code></li>
+<li><code>dplyr_reconstruct.birthdays()</code></li>
+</ul>
+<p>We’ll tackle the first three first, and then move onto to the last
+one as this requires some extra steps.</p>
+<p><code><a href="../reference/birthdays_reconstruct.html">birthdays_reconstruct()</a></code> is a function that contains an
+if-else statement to determine whether the returned object is a
+<code>birthdays</code> or <code>data.frame</code> object.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">birthdays_reconstruct</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">to</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="../reference/birthdays_can_reconstruct.html">birthdays_can_reconstruct</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="fu"><a href="../reference/df_reconstruct.html">df_reconstruct</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">to</span><span class="op">)</span></span>
+<span>  <span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"data.frame"</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"Removing crucial column in `&lt;birthdays&gt;` returning `&lt;data.frame&gt;`"</span><span class="op">)</span></span>
+<span>    <span class="va">x</span></span>
+<span>  <span class="op">}</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p>The if-else evaluation is controlled by
+<code><a href="../reference/birthdays_can_reconstruct.html">birthdays_can_reconstruct()</a></code>. This function determines
+whether after subsetting the object is a valid
+<code>&lt;birthdays&gt;</code> class. It does this by running the class
+validator, and if validation fails, by throwing an error, it returns
+<code>FALSE</code>, otherwise the function will return
+<code>TRUE</code>.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">birthdays_can_reconstruct</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="co"># check whether input is valid</span></span>
+<span>  <span class="va">valid</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span></span>
+<span>    <span class="op">{</span> <span class="fu"><a href="../reference/validate_birthdays.html">validate_birthdays</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">}</span>,</span>
+<span>    error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">cnd</span><span class="op">)</span> <span class="cn">FALSE</span></span>
+<span>  <span class="op">)</span></span>
+<span></span>
+<span>  <span class="co"># return boolean</span></span>
+<span>  <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/Logic.html" class="external-link">isFALSE</a></span><span class="op">(</span><span class="va">valid</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p>The next function required is <code><a href="../reference/df_reconstruct.html">df_reconstruct()</a></code>. This is
+called when the object is judged to be a valid
+<code>&lt;birthdays&gt;</code> object and simply copies the attributes
+over from the <code>&lt;birthdays&gt;</code> class to the object being
+subset.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">df_reconstruct</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">to</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">attrs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attributes.html" class="external-link">attributes</a></span><span class="op">(</span><span class="va">to</span><span class="op">)</span></span>
+<span>  <span class="va">attrs</span><span class="op">$</span><span class="va">names</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
+<span>  <span class="va">attrs</span><span class="op">$</span><span class="va">row.names</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/base-internal.html" class="external-link">.row_names_info</a></span><span class="op">(</span><span class="va">x</span>, type <span class="op">=</span> <span class="fl">0L</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/attributes.html" class="external-link">attributes</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">attrs</span></span>
+<span>  <span class="va">x</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p>The three functions defined for reconstruction can be added to a
+package with the subsetting function in order to subset
+<code>&lt;birthdays&gt;</code> objects and returning either
+<code>&lt;birthdays&gt;</code> objects if still valid, or data frames
+when invalidated. This design has the benefit that when conducting data
+exploration a user is not faced with an error, but can continue with a
+data frame, while being informed by the message printed to console in
+<code><a href="../reference/birthdays_reconstruct.html">birthdays_reconstruct()</a></code>.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">`[.birthdays`</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">out</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">NextMethod</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="../reference/birthdays_reconstruct.html">birthdays_reconstruct</a></span><span class="op">(</span><span class="va">out</span>, <span class="va">x</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
 </div>
 </div>
 
