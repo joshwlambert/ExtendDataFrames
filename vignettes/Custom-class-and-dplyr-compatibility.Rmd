@@ -107,10 +107,6 @@ Here we present both cases and considerations and technical details of both opti
 ```{r}
 validate_birthdays <- function(x) {
   stopifnot(
-    "`birthdays` object must be of type `birthdays`" =
-      identical(inherits(x, "birthdays", which = TRUE), 1L),
-    "`birthdays` object should inherit from data.frames" =
-      identical(inherits(x, "data.frame", which = TRUE), 2L),
     "input must contain 'name' and 'birthday' columns" =
       all(c("name", "birthday") %in% colnames(x)),
     "names must be a character" =
@@ -137,7 +133,68 @@ birthdays[, -1]
 	input must contain 'name' and 'birthday' columns
 ```
 
+The second design option is the check whether the class is valid, and if not downgrade the class to the superclass, in our case a data frame. This is done by not only validating the object during subsetting but to check whether it is a valid class object, and then either ensuring all of the attributes of the subclass -- in our case `birthdays` -- are maintained, or attributes are stripped and only the attributes of the base superclass -- in our case `data.frame` -- are kept. 
 
+___Important note: this section of the post relies heavily on code from___ https://github.com/DavisVaughan/2020-06-01_dplyr-vctrs-compat.
+
+The four functions that are required to be added to ensure our class is correctly handled when invaliding it are: 
+
+- `birthdays_reconstruct()`
+- `birthdays_can_reconstruct()`
+- `df_reconstruct()`
+- `dplyr_reconstruct.birthdays()`
+
+We'll tackle the first three first, and then move onto to the last one as this requires some extra steps. 
+
+`birthdays_reconstruct()` is a function that contains an if-else statement to determine whether the returned object is a `birthdays` or `data.frame` object.
+
+```{r}
+birthdays_reconstruct <- function(x, to) {
+  if (birthdays_can_reconstruct(x)) {
+    df_reconstruct(x, to)
+  } else {
+    class(x) <- "data.frame"
+    message("Removing crucial column in `<birthdays>` returning `<data.frame>`")
+    x
+  }
+}
+```
+
+The if-else evaluation is controlled by `birthdays_can_reconstruct()`. This function determines whether after subsetting the object is a valid `<birthdays>` class. It does this by running the class validator, and if validation fails, by throwing an error, it returns `FALSE`, otherwise the function will return `TRUE`.
+
+```{r}
+birthdays_can_reconstruct <- function(x) {
+  # check whether input is valid
+  valid <- tryCatch(
+    { validate_birthdays(x) },
+    error = function(cnd) FALSE
+  )
+
+  # return boolean
+  !isFALSE(valid)
+}
+```
+
+The next function required is `df_reconstruct()`. This is called when the object is judged to be a valid `<birthdays>` object and simply copies the attributes over from the `<birthdays>` class to the object being subset.
+
+```{r}
+df_reconstruct <- function(x, to) {
+  attrs <- attributes(to)
+  attrs$names <- names(x)
+  attrs$row.names <- .row_names_info(x, type = 0L)
+  attributes(x) <- attrs
+  x
+}
+```
+
+The three functions defined for reconstruction can be added to a package with the subsetting function in order to subset `<birthdays>` objects and returning either `<birthdays>` objects if still valid, or data frames when invalidated. This design has the benefit that when conducting data exploration a user is not faced with an error, but can continue with a data frame, while being informed by the message printed to console in `birthdays_reconstruct()`.
+
+```{r}
+`[.birthdays` <- function(x, ...) {
+  out <- NextMethod()
+  birthdays_reconstruct(out, x)
+}
+```
 [^1]: https://adv-r.hadley.nz/s3.html?q=inherita#s3-inheritance
 [^2]: https://tibble.tidyverse.org/articles/tibble.html
 [^3]: https://github.com/Rdatatable/data.table
