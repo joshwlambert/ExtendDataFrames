@@ -74,7 +74,16 @@
     
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://joshwlambert.github.io/ExtendDataFrames/">ExtendDataFrames</a></span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://joshwlambert.github.io/ExtendDataFrames/">ExtendDataFrames</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'dplyr'</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:stats':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     filter, lag</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     intersect, setdiff, setequal, union</span></span></code></pre></div>
 <div class="section level2">
 <h2 id="extending-data-frames-in-r">Extending Data Frames in R<a class="anchor" aria-label="anchor" href="#extending-data-frames-in-r"></a>
 </h2>
@@ -257,7 +266,7 @@ are maintained, or attributes are stripped and only the attributes of
 the base superclass – in our case <code>data.frame</code> – are
 kept.</p>
 <p><strong><em>Important note: this section of the post relies heavily
-on code from</em></strong> <a href="https://github.com/DavisVaughan/2020-06-01_dplyr-vctrs-compat" class="external-link uri">https://github.com/DavisVaughan/2020-06-01_dplyr-vctrs-compat</a>.</p>
+on</em></strong> <a href="https://github.com/DavisVaughan/2020-06-01_dplyr-vctrs-compat" class="external-link uri">https://github.com/DavisVaughan/2020-06-01_dplyr-vctrs-compat</a>.</p>
 <p>The four functions that are required to be added to ensure our class
 is correctly handled when invaliding it are:</p>
 <ul>
@@ -325,6 +334,67 @@ data frame, while being informed by the message printed to console in
 <span>  <span class="va">out</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">NextMethod</a></span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="../reference/birthdays_reconstruct.html">birthdays_reconstruct</a></span><span class="op">(</span><span class="va">out</span>, <span class="va">x</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="compatibility-with-dplyr">Compatibility with {dplyr}<a class="anchor" aria-label="anchor" href="#compatibility-with-dplyr"></a>
+</h3>
+<p>In order to be able to operate on our <code>&lt;birthdays&gt;</code>
+class using functions from the package {dplyr}, as would be common for
+data frames, we need to make our function compatible. This is where the
+function <code>dplyr_reconstruct.birthdays()</code> comes in.
+<code><a href="https://dplyr.tidyverse.org/reference/dplyr_extending.html" class="external-link">dplyr_reconstruct()</a></code> is a generic function exported by
+{dplyr}. It is called in {dplyr} verbs to make sure that the objects are
+restored to the input class when not invalidated.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Registered in `.onLoad()` in zzz.R</span></span>
+<span><span class="va">dplyr_reconstruct.birthdays</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">data</span>, <span class="va">template</span><span class="op">)</span> <span class="op">{</span> <span class="co"># nolint</span></span>
+<span>  <span class="fu"><a href="../reference/birthdays_reconstruct.html">birthdays_reconstruct</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">template</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p>Information about the generic can be found through the {dplyr} help
+documentation.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="op">?</span><span class="va">dplyr_extending</span></span>
+<span><span class="op">?</span><span class="fu">dplyr</span><span class="fu">::</span><span class="va"><a href="https://dplyr.tidyverse.org/reference/dplyr_extending.html" class="external-link">dplyr_reconstruct</a></span></span></code></pre></div>
+<p>As explained in the help documentation {dplyr} also uses two other
+base R functions to perform data manipulation. <code>names&lt;-</code>
+(i.e the names setter function) and <code>[</code> the one-dimensional
+subsetting function. We therefore define these methods for our custom
+class in order for <code><a href="https://dplyr.tidyverse.org/reference/dplyr_extending.html" class="external-link">dplyr_reconstruct()</a></code> to work as
+intended.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">`[.birthdays`</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">out</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">NextMethod</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="../reference/birthdays_reconstruct.html">birthdays_reconstruct</a></span><span class="op">(</span><span class="va">out</span>, <span class="va">x</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="va">`names&lt;-.birthdays`</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">value</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">out</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">NextMethod</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="../reference/birthdays_reconstruct.html">birthdays_reconstruct</a></span><span class="op">(</span><span class="va">out</span>, <span class="va">x</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p>This wraps up the need for adding function to perform data
+manipulation using the reconstruction design outlined above. However,
+there is some final housekeeping to do. You may have noticed the
+<code># Registered in</code>.onLoad()<code>in zzz.R</code> comment when
+defining <code>dplyr_reconstruct.birthdays()</code> above. This is
+because in order to not depend on the entire {dplyr} package but
+requiring the <code><a href="https://dplyr.tidyverse.org/reference/dplyr_extending.html" class="external-link">dplyr_reconstruct()</a></code> generic we need to
+register this when the package is loaded using the
+<code>.onLoad()</code> function.</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">.onLoad</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">libname</span>, <span class="va">pkgname</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu">s3_register</span><span class="op">(</span><span class="st">"dplyr::dplyr_reconstruct"</span>, <span class="st">"birthdays"</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p>The <code>s3_register()</code> function used in
+<code>.onLoad()</code> also needed to be added to the package and this
+function is kindly supplied by both {vctrs} and {rlang} unlicensed and
+thus can be copied into another package.</p>
+<p>Compatibility with {vctrs} is also possible using the same mechanism
+(functions) described in this post, and if insterested see <a href="https://github.com/DavisVaughan/2020-06-01_dplyr-vctrs-compat" class="external-link uri">https://github.com/DavisVaughan/2020-06-01_dplyr-vctrs-compat</a>
+for details.</p>
+<p>This blog post is a compendium of information from sources that are
+linked and cited throughout. Please refer to those sites for more
+information and as the primary source for citation in further work.</p>
 </div>
 </div>
 
