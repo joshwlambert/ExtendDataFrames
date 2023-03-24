@@ -8,6 +8,13 @@
 \description{
 This package acts as a demonstration on how to extend the data frame class in R, and how to make it compatible with {dplyr} functions.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://joshwlambert.github.io/ExtendDataFrames/}
+}
+
+}
 \author{
 \strong{Maintainer}: Joshua W. Lambert \email{joshua.lambert@lshtm.ac.uk} (\href{https://orcid.org/0000-0001-5218-3046}{ORCID}) [copyright holder]
 
