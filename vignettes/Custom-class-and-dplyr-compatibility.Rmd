@@ -16,6 +16,7 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(ExtendDataFrames)
+library(dplyr)
 ```
 
 ## Extending Data Frames in R
@@ -135,7 +136,7 @@ birthdays[, -1]
 
 The second design option is the check whether the class is valid, and if not downgrade the class to the superclass, in our case a data frame. This is done by not only validating the object during subsetting but to check whether it is a valid class object, and then either ensuring all of the attributes of the subclass -- in our case `birthdays` -- are maintained, or attributes are stripped and only the attributes of the base superclass -- in our case `data.frame` -- are kept. 
 
-___Important note: this section of the post relies heavily on code from___ https://github.com/DavisVaughan/2020-06-01_dplyr-vctrs-compat.
+___Important note: this section of the post relies heavily on___ https://github.com/DavisVaughan/2020-06-01_dplyr-vctrs-compat.
 
 The four functions that are required to be added to ensure our class is correctly handled when invaliding it are: 
 
@@ -195,6 +196,57 @@ The three functions defined for reconstruction can be added to a package with th
   birthdays_reconstruct(out, x)
 }
 ```
+
+### Compatibility with {dplyr}
+
+In order to be able to operate on our `<birthdays>` class using functions from the
+package {dplyr}, as would be common for data frames, we need to make our function compatible. This is where the function `dplyr_reconstruct.birthdays()` comes in. `dplyr_reconstruct()` is a generic function exported by {dplyr}. It is called in {dplyr} verbs to make sure that the objects are restored to the input class when not invalidated.
+
+```{r}
+# Registered in `.onLoad()` in zzz.R
+dplyr_reconstruct.birthdays <- function(data, template) { # nolint
+  birthdays_reconstruct(data, template)
+}
+```
+
+Information about the generic can be found through the {dplyr} help documentation.
+
+```{r}
+?dplyr_extending
+?dplyr::dplyr_reconstruct
+```
+
+As explained in the help documentation {dplyr} also uses two other base R functions to perform data manipulation. 
+`names<-` (i.e the names setter function) and `[` the one-dimensional subsetting function. We therefore define these methods for our custom class in order for `dplyr_reconstruct()` to work as intended.
+
+```{r}
+`[.birthdays` <- function(x, ...) {
+  out <- NextMethod()
+  birthdays_reconstruct(out, x)
+}
+
+`names<-.birthdays` <- function(x, value) {
+  out <- NextMethod()
+  birthdays_reconstruct(out, x)
+}
+```
+
+This wraps up the need for adding function to perform data manipulation using the reconstruction design outlined above. However, there is some final housekeeping to do. You may have noticed the `# Registered in `.onLoad()` in zzz.R` comment when defining `dplyr_reconstruct.birthdays()` above. This is because in order to not depend on the entire {dplyr} package but requiring the `dplyr_reconstruct()` generic we need to register this when the package is loaded using the `.onLoad()` function.
+
+```{r}
+.onLoad <- function(libname, pkgname) {
+  s3_register("dplyr::dplyr_reconstruct", "birthdays")
+  invisible()
+}
+```
+
+The `s3_register()` function used in `.onLoad()` also needed to be added to the package and this function is kindly supplied by both {vctrs} and {rlang} unlicensed and thus can be copied into another package. 
+
+Compatibility with {vctrs} is also possible using the same mechanism (functions) described in this post, and if insterested see  https://github.com/DavisVaughan/2020-06-01_dplyr-vctrs-compat for details.
+
+This blog post is a compendium of information from sources that are linked and cited throughout. Please refer to those sites for more information and as the primary source for citation in further work.
+
+
 [^1]: https://adv-r.hadley.nz/s3.html?q=inherita#s3-inheritance
 [^2]: https://tibble.tidyverse.org/articles/tibble.html
 [^3]: https://github.com/Rdatatable/data.table
