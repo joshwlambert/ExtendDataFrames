@@ -1,0 +1,22 @@
+Package: ExtendDataFrames
+Type: Package
+Title: Explains how to extend the data frame class in R
+Version: 0.1.0
+Authors@R: 
+        person(
+            given = "Joshua W.",
+            family = "Lambert",
+            role = c("aut", "cre", "cph"),
+            email = "joshua.lambert@lshtm.ac.uk",
+            comment = c(ORCID = "https://orcid.org/0000-0001-5218-3046")
+        )
+Description: This package acts as a demonstration on how to extend the data
+    frame class in R, and how to make it compatible with {dplyr} functions.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.2.3
+Imports: 
+    lubridate (>= 1.9.2),
+    randomNames (>= 1.5.0.0),
+    rlang (>= 1.1.0)
