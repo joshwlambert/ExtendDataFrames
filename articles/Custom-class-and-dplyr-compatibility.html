@@ -193,6 +193,66 @@ that does.</p>
 <code>tibbles</code> and their functionality</a></li>
 </ul>
 </div>
+<div class="section level3">
+<h3 id="design-decision-around-class-invariants">Design decision around class invariants<a class="anchor" aria-label="anchor" href="#design-decision-around-class-invariants"></a>
+</h3>
+<p>Moving onto the second section of the post, in which we discuss the
+design choices when creating and using S3 classes in R.
+<strong><em>Class invariants</em></strong> are members of your class
+that define it. In other words, without these elements your class does
+not fulfil its basic definition. It is therefore sensible to make sure
+that your class contains these elements at all times (or at least after
+operations have been applied to your class). In cases when the class
+object contains all the invariants normal service can be continued.
+However, in the case that an invariant is missing or modified to a
+non-conformist type (e.g. a date converted to a numer) a decision has to
+be made. Either the code can error, hopefully giving the user an
+informative message as to why their modification broke the object;
+alternatively, the subclass can be revoke and the superclass can be
+returned. In almost all cases the superclass (i.e. the base class being
+inherited from) is more general and won’t have the same class invariant
+restrictions.</p>
+<p>For our example class, <code>birthdays</code>, the invariants are a
+column called <code>name</code> which must contain characters, and a
+column called <code>birthday</code> which must contain dates. The order
+of the rows and columns is not considered an invariant property, and
+having extra columns with other names and data types is also allowed.
+The number of rows is also not an invariant as we can have as many
+birthdays as we like in the data object.</p>
+<p>Here we present both cases and considerations and technical details
+of both options. We’ll demonstrate both of these cases with the subset
+function in R (subsetting uses a single square bracket for tabular data,
+<code>[</code>). First the fail-on-subsetting. Before we write the
+subsetting function it is useful to have a function that checks that an
+object of our class is valid, a so-called validator function.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">validate_birthdays</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span></span>
+<span>    <span class="st">"`birthdays` object must be of type `birthdays`"</span> <span class="op">=</span></span>
+<span>      <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">inherits</a></span><span class="op">(</span><span class="va">x</span>, <span class="st">"birthdays"</span>, which <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="fl">1L</span><span class="op">)</span>,</span>
+<span>    <span class="st">"`birthdays` object should inherit from data.frames"</span> <span class="op">=</span></span>
+<span>      <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">inherits</a></span><span class="op">(</span><span class="va">x</span>, <span class="st">"data.frame"</span>, which <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="fl">2L</span><span class="op">)</span>,</span>
+<span>    <span class="st">"input must contain 'name' and 'birthday' columns"</span> <span class="op">=</span></span>
+<span>      <span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"name"</span>, <span class="st">"birthday"</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    <span class="st">"names must be a character"</span> <span class="op">=</span></span>
+<span>      <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">is.character</a></span><span class="op">(</span><span class="va">x</span><span class="op">$</span><span class="va">name</span><span class="op">)</span>,</span>
+<span>    <span class="st">"birthday must be a date"</span> <span class="op">=</span></span>
+<span>      <span class="fu">lubridate</span><span class="fu">::</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/date_utils.html" class="external-link">is.Date</a></span><span class="op">(</span><span class="va">x</span><span class="op">$</span><span class="va">birthday</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p>This will return an error if the class is not valid (defined in terms
+of the class’ invariants).</p>
+<p>Now we can show how to error if one of the invariants are removed
+during subsetting.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="st">`</span><span class="at">[.birthdays</span><span class="st">`</span> <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">validate_birthdays</span>(<span class="fu">NextMethod</span>())</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>birthdays[, <span class="sc">-</span><span class="dv">1</span>]</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    Error <span class="cf">in</span> <span class="fu">validate_birthdays</span>(<span class="fu">NextMethod</span>()) <span class="sc">:</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    input must contain <span class="st">'name'</span> and <span class="st">'birthday'</span> columns</span></code></pre></div>
+</div>
 </div>
 
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
