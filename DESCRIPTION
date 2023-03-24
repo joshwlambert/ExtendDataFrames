@@ -21,7 +21,10 @@ Imports:
     randomNames (>= 1.5.0.0),
     rlang (>= 1.1.0)
 Suggests: 
+    covr,
     knitr,
-    rmarkdown
+    rmarkdown,
+    testthat (>= 3.0.0)
 VignetteBuilder: knitr
 URL: https://joshwlambert.github.io/ExtendDataFrames/
+Config/testthat/edition: 3
