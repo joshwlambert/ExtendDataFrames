@@ -65,10 +65,6 @@ validate_birthdays <- function(x) {
 
   # validate `<birthdays>` object
   stopifnot(
-    "`birthdays` object must be of type `birthdays`" =
-      identical(inherits(x, "birthdays", which = TRUE), 1L),
-    "`birthdays` object should inherit from data.frames" =
-      identical(inherits(x, "data.frame", which = TRUE), 2L),
     "input must contain 'name' and 'birthday' columns" =
       all(c("name", "birthday") %in% colnames(x)),
     "names must be a character" =
