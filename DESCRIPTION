@@ -20,3 +20,7 @@ Imports:
     lubridate (>= 1.9.2),
     randomNames (>= 1.5.0.0),
     rlang (>= 1.1.0)
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

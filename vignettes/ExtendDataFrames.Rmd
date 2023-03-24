@@ -1,0 +1,117 @@
+---
+title: "ExtendDataFrames"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ExtendDataFrames}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(ExtendDataFrames)
+```
+
+In the {ExtendDataFrames} package we need to create a class. For this example,
+We have created the `<birthdays>` class. It is very simple, fundamentally the
+class just needs two columns, with column names: `name` and `birthday`. The
+names must be exact (i.e. case- and plural-sensitive), but we'll come back to
+this aspect later. The role of the class -- and it's important that a well-
+designed class has a role, otherwise just using the build in data frame will 
+probably suffice -- is to store the name of a person and their birthday. 
+
+For a full explaination of the functions used in this vignette, look at the 
+source code and see the other vignette.
+
+We can create a `<birthdays>` object by calling the class constructor. First
+we create a data frame that can be converted to a `<birthdays>` object and pass
+that to the constructor, which is called `birthdays()`. In other R packages 
+class constructors may be called `new_[class-name]()`, `build_[class-name]()`,
+or similar.
+
+```{r}
+df <- data.frame(
+  name = c("kevin", "stacey"),
+  birthday = c(as.Date("2001-01-01"), as.Date("2002-01-02"))
+)
+birthdays <- birthdays(df)
+birthdays
+```
+
+We can check whether our new object has been assigned the correct class 
+attribute.
+
+```{r}
+class(birthdays)
+attributes(birthdays)
+```
+
+The benefit of extending the data frame class is we inherit all of the methods
+already written for data frames, and can overwrite (overload) these method with
+our own custom `<birthday>` methods. We have written a custom `print()`
+(`print.birthdays()`) method and will use the inherited `summary()` and `str()`
+methods.
+
+```{r}
+print(birthdays)
+summary(birthdays)
+str(birthdays)
+```
+
+The print method returns invisibly which we can check:
+
+```{r}
+tmp <- print(birthdays)
+tmp == birthdays
+```
+
+We can also write custom methods that are not already defined, in other words
+do not already have a define generic function. Here we write a 
+`birthdays_per_month()` method which does as it says on the tin.
+
+```{r}
+birthdays_per_month(birthdays)
+```
+
+The `<birthdays>` class is validated upon construction and can also be validated
+interactively when working with it:
+
+```{r}
+validate_birthdays(birthdays)
+
+validate_birthdays(birthdays[1, ])
+
+try(validate_birthdays(birthdays[, 1]))
+
+birthdays$age <-  seq_len(nrow(birthdays))
+validate_birthdays(birthdays)
+```
+
+For a full explanation of the behaviour in the above code chunk see the other 
+vignette.
+
+```{r}
+birthday_paradox(birthdays)
+```
+
+Another example:
+
+```{r}
+df <- data.frame(
+  name = randomNames::randomNames(10),
+  birthday = sample(
+    x = seq.Date(
+      from = as.Date("2020-01-01"),
+      to = as.Date("2022-01-01"),
+      by = 1),
+    size = 10
+  )
+)
+birthdays <- birthdays(df)
+```
