@@ -1,0 +1,101 @@
+---
+title: "Custom-class-and-dplyr-compatibility"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Custom-class-and-dplyr-compatibility}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(ExtendDataFrames)
+```
+
+## Extending Data Frames in R
+
+R is a commonly used language for data science and statistical computing. Foundational to this is having data structures that allow manipulation of data with minimal effort and cognitive load. One of the most commonly required data structures is tabular data. This can be represented in R in a few ways, for example a matrix or a data frame. The data frame (class `data.frame`) is a flexible tabular data structure, as it can hold different data types (e.g. numbers, character strings, etc.) across different columns. This is in contrast to matrices -- which are arrays with dimensions -- and thus can only hold a single data type. 
+
+```{r}
+# data frame can hold heterogeneous data types across different columns
+data.frame(a = c(1, 2, 3), b = c(4, 5, 6), c = c("a", "b", "c"))
+
+# each column must be of the same type
+df <- data.frame(a = c(1, 2, 3), b = c("4", 5, 6))
+# be careful of the silent type conversion
+df$a
+df$b
+
+mat <- matrix(1:9, nrow = 3, ncol = 3)
+mat
+mat[1, 1] <- "1"
+# be careful of the silent type conversion
+mat
+```
+
+Data frames can even be nested, cells can be data frames or lists.
+
+[INSERT CODE EXAMPLE OF NESTED DF HERE]
+
+It is therefore clear why data frames are so prevalent. However, they are not without limitations. They have a relatively basic printing method which can fload the R console when the number of columns or rows is large. They have useful methods (e.g., `summary()` and `str()`), but these might not be appropriate for certain types of tabular data. In these cases it is useful to utilise R's inheritance mechanisms (specifically S3 inheritance) to write extensions for R's `data.frame` class. In this case the data frame is the superclass and the new subclass extends it and inherits its methods (see Adv R[^1] for more details on S3 inheritance).
+
+One of the most common extension of the data frame is the `tibble` from the {tibble} R package. Outlined in {tibble}'s 'Tibbles' vignette[^2], `tibble`s offer improvements in printing, subsetting and recycling rules. Another commonly used data frame extension is the `data.table` class from the {data.table} R package [^3]. This class is primarily designed to improve the performance (i.e. speed and efficiency of operations and storage) of working with tabular data in R. 
+
+In the process of developing R software (most likely an R package), a new tabular data class that builds atop data frames can become beneficial. This blog post has two main sections: 
+1) a brief overview of  the steps required to setup a class that extends data frames
+2) guide to the technical aspects of class invariants and design and implementation decisions, and tidyverse compatibility 
+
+### Writing custom data class
+
+It is useful to write a class constructor function that can be called to create an object of your new class. The functions define below are a redacted version (for readability) of functions also defined in the package.
+
+```r
+birthdays <- function(x) {
+	# the vector of classes is required for it to inherit from `data.frame`
+  structure(x, class = c("birthdays", "data.frame"))
+}
+```
+
+That's all that's needed to create a subclass of a data frame. However, although we've created the class we haven't given it any functionality and thus it will be identical to a data frame due to inheritance.
+
+We can now write as many methods as we want. Here we will show two methods, one of which does not require writing a generic and the second that does.
+
+```r
+print.birthdays <- function(x, ...) {
+  cat(
+    sprintf(
+      "A `birthdays` object with %s rows and %s cols",
+      dim(x)[1], dim(x)[2]
+    )
+  )
+  invisible(x)
+}
+
+birthdays_per_month <- function(x, ...) {
+  UseMethod("birthdays_per_month")
+}
+
+birthdays_per_month.birthdays <- function(x, ...) {
+  out <- table(lubridate::month(x$birthday))
+  months <- c(
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+  )
+  names(out) <- months[as.numeric(names(out))]
+  return(out)
+}
+```
+
+Useful resources for the "Writing custom data class" section:
+
+- [extending `tibbles` and their functionality](https://tibble.tidyverse.org/articles/extending.html)
+
+[^1]: https://adv-r.hadley.nz/s3.html?q=inherita#s3-inheritance
+[^2]: https://tibble.tidyverse.org/articles/tibble.html
+[^3]: https://github.com/Rdatatable/data.table
