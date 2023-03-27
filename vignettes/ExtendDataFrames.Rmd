@@ -22,8 +22,8 @@ In the {ExtendDataFrames} package we need to create a class. For this example,
 We have created the `<birthdays>` class. It is very simple, fundamentally the
 class just needs two columns, with column names: `name` and `birthday`. The
 names must be exact (i.e. case- and plural-sensitive), but we'll come back to
-this aspect later. The role of the class -- and it's important that a well-
-designed class has a role, otherwise just using the build in data frame will 
+this aspect later. The role of the class -- and it's important that a well-designed 
+class has a role, otherwise just using the build in data frame will 
 probably suffice -- is to store the name of a person and their birthday. 
 
 For a full explaination of the functions used in this vignette, look at the 
@@ -53,7 +53,7 @@ attributes(birthdays)
 ```
 
 The benefit of extending the data frame class is we inherit all of the methods
-already written for data frames, and can overwrite (overload) these method with
+already written for data frames, and can overwrite (overload) these methods with
 our own custom `<birthday>` methods. We have written a custom `print()`
 (`print.birthdays()`) method and will use the inherited `summary()` and `str()`
 methods.
@@ -68,11 +68,11 @@ The print method returns invisibly which we can check:
 
 ```{r}
 tmp <- print(birthdays)
-tmp == birthdays
+identical(tmp, birthdays)
 ```
 
 We can also write custom methods that are not already defined, in other words
-do not already have a define generic function. Here we write a 
+do not already have a defined generic function. Here we write a 
 `birthdays_per_month()` method which does as it says on the tin.
 
 ```{r}
@@ -96,11 +96,13 @@ validate_birthdays(birthdays)
 For a full explanation of the behaviour in the above code chunk see the other 
 vignette.
 
+Other methods for the class can also be added, for example:
+
 ```{r}
 birthday_paradox(birthdays)
 ```
 
-Another example:
+Another example of making a class with randomised names and birthdays:
 
 ```{r}
 df <- data.frame(
@@ -114,4 +116,6 @@ df <- data.frame(
   )
 )
 birthdays <- birthdays(df)
+birthdays
+as.data.frame(birthdays)
 ```
