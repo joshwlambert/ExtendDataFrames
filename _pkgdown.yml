@@ -17,9 +17,9 @@ reference:
   - title: Getters, setters and subsetters
     desc: Functions to extract and modify birthdays class objects
     contents:
-    - `[.birthdays`
-    - `names<-.birthdays`
-    - `$<-.birthdays`
+    - "`[.birthdays`"
+    - "`names<-.birthdays`"
+    - "`$<-.birthdays`"
 
   - title: accessory methods for birthdays class
     desc: Functions to compute statistics from birthdays class
