@@ -42,7 +42,15 @@ mat
 
 Data frames can even be nested, cells can be data frames or lists.
 
-[INSERT CODE EXAMPLE OF NESTED DF HERE]
+```{r}
+df <- data.frame(a = "w", b = "x")
+df[1, 1][[1]] <- list(c = c("y", "z"))
+df
+
+df <- data.frame(a = "w", b = "x")
+df[1, 1][[1]] <- list(data.frame(c = "y", d = "z"))
+df
+```
 
 It is therefore clear why data frames are so prevalent. However, they are not without limitations. They have a relatively basic printing method which can fload the R console when the number of columns or rows is large. They have useful methods (e.g., `summary()` and `str()`), but these might not be appropriate for certain types of tabular data. In these cases it is useful to utilise R's inheritance mechanisms (specifically S3 inheritance) to write extensions for R's `data.frame` class. In this case the data frame is the superclass and the new subclass extends it and inherits its methods (see Adv R[^1] for more details on S3 inheritance).
 
@@ -53,7 +61,7 @@ In the process of developing R software (most likely an R package), a new tabula
 1) a brief overview of  the steps required to setup a class that extends data frames
 2) guide to the technical aspects of class invariants and design and implementation decisions, and tidyverse compatibility 
 
-### Writing custom data class
+### Writing a custom data class
 
 It is useful to write a class constructor function that can be called to create an object of your new class. The functions define below are a redacted version (for readability) of functions defined in this package.
 
@@ -66,7 +74,7 @@ birthdays <- function(x) {
 
 That's all that's needed to create a subclass of a data frame. However, although we've created the class we haven't given it any functionality and thus it will be identical to a data frame due to inheritance.
 
-We can now write as many methods as we want. Here we will show two methods, one of which does not require writing a generic and the second that does.
+We can now write as many methods as we want. Here we will show two methods, one of which does not require writing a generic and the second that does. See Adv R[^1] and this Epiverse blog post[^4] to find out more about S3 generics.
 
 ```r
 print.birthdays <- function(x, ...) {
@@ -100,11 +108,11 @@ Useful resources for the "Writing custom data class" section:
 
 ### Design decision around class invariants
 
-Moving onto the second section of the post, in which we discuss the design choices when creating and using S3 classes in R. ***Class invariants*** are members of your class that define it. In other words, without these elements your class does not fulfil its basic definition. It is therefore sensible to make sure that your class contains these elements at all times (or at least after operations have been applied to your class). In cases when the class object contains all the invariants normal service can be continued. However, in the case that an invariant is missing or modified to a non-conformist type (e.g. a date converted to a numer) a decision has to be made. Either the code can error, hopefully giving the user an informative message as to why their modification broke the object; alternatively, the subclass can be revoke and the superclass can be returned. In almost all cases the superclass (i.e. the base class being inherited from) is more general and won't have the same class invariant restrictions. 
+Moving onto the second section of the post, in which we discuss the design choices when creating and using S3 classes in R. ***Class invariants*** are members of your class that define it. In other words, without these elements your class does not fulfil its basic definition. It is therefore sensible to make sure that your class contains these elements at all times (or at least after operations have been applied to your class). In cases when the class object contains all the invariants normal service can be continued. However, in the case that an invariant is missing or modified to a non-conformist type (e.g. a date converted to a numer) a decision has to be made. Either the code can error, hopefully giving the user an informative message as to why their modification broke the object; alternatively, the subclass can be revoked and the superclass can be returned. In almost all cases the superclass (i.e. the base class being inherited from) is more general and won't have the same class invariant restrictions. 
 
 For our example class, `<birthdays>`, the invariants are a column called `name` which must contain characters, and a column called `birthday` which must contain dates. The order of the rows and columns is not considered an invariant property, and having extra columns with other names and data types is also allowed. The number of rows is also not an invariant as we can have as many birthdays as we like in the data object.
 
-Here we present both cases and considerations and technical details of both options. We'll demonstrate both of these cases with the subset function in R (subsetting uses a single square bracket for tabular data, `[`). First the fail-on-subsetting. Before we write the subsetting function it is useful to have a function that checks that an object of our class is valid, a so-called validator function.
+Here we present both cases as well as considerations and technical details of both options. We'll demonstrate both of these cases with the subset function in R (subsetting uses a single square bracket for tabular data, `[`). First the fail-on-subsetting. Before we write the subsetting function it is useful to have a function that checks that an object of our class is valid, a so-called validator function.
 
 ```{r}
 validate_birthdays <- function(x) {
@@ -135,7 +143,7 @@ birthdays[, -1]
 #  input must contain 'name' and 'birthday' columns
 ```
 
-The second design option is the check whether the class is valid, and if not downgrade the class to the superclass, in our case a data frame. This is done by not only validating the object during subsetting but to check whether it is a valid class object, and then either ensuring all of the attributes of the subclass -- in our case `<birthdays>` -- are maintained, or attributes are stripped and only the attributes of the base superclass -- in our case `data.frame` -- are kept. 
+The second design option is the reconstruct-on-subsetting. This checks whether the class is valid, and if not downgrade the class to the superclass, in our case a data frame. This is done by not only validating the object during subsetting but to check whether it is a valid class object, and then either ensuring all of the attributes of the subclass -- in our case `<birthdays>` -- are maintained, or attributes are stripped and only the attributes of the base superclass -- in our case `data.frame` -- are kept. 
 
 ___Important note: this section of the post relies heavily on___ https://github.com/DavisVaughan/2020-06-01_dplyr-vctrs-compat.
 
@@ -155,7 +163,7 @@ birthdays_reconstruct <- function(x, to) {
   if (birthdays_can_reconstruct(x)) {
     df_reconstruct(x, to)
   } else {
-    class(x) <- "data.frame"
+     x <- as.data.frame(x)
     message("Removing crucial column in `<birthdays>` returning `<data.frame>`")
     x
   }
@@ -251,3 +259,4 @@ This blog post is a compendium of information from sources that are linked and c
 [^1]: https://adv-r.hadley.nz/s3.html?q=inherita#s3-inheritance
 [^2]: https://tibble.tidyverse.org/articles/tibble.html
 [^3]: https://github.com/Rdatatable/data.table
+[^4]: https://epiverse-trace.github.io/posts/s3-generic/
