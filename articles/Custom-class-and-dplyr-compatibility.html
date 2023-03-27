@@ -52,7 +52,14 @@
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off">
 </form>
 
-      <ul class="navbar-nav"></ul>
+      <ul class="navbar-nav">
+<li class="nav-item">
+  <a class="external-link nav-link" href="https://github.com/joshwlambert/ExtendDataFrames/" aria-label="github">
+    <span class="fab fa fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
 </div>
 
     
@@ -67,14 +74,14 @@
       <img src="" class="logo" alt=""><h1>Custom-class-and-dplyr-compatibility</h1>
             
       
-      
+      <small class="dont-index">Source: <a href="https://github.com/joshwlambert/ExtendDataFrames/blob/HEAD/vignettes/Custom-class-and-dplyr-compatibility.Rmd" class="external-link"><code>vignettes/Custom-class-and-dplyr-compatibility.Rmd</code></a></small>
       <div class="d-none name"><code>Custom-class-and-dplyr-compatibility.Rmd</code></div>
     </div>
 
     
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://joshwlambert.github.io/ExtendDataFrames/">ExtendDataFrames</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/joshwlambert/ExtendDataFrames" class="external-link">ExtendDataFrames</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attaching package: 'dplyr'</span></span>
@@ -149,16 +156,19 @@ improve the performance (i.e. speed and efficiency of operations and
 storage) of working with tabular data in R.</p>
 <p>In the process of developing R software (most likely an R package), a
 new tabular data class that builds atop data frames can become
-beneficial. This blog post has two main sections: 1) a brief overview of
-the steps required to setup a class that extends data frames 2) guide to
-the technical aspects of class invariants and design and implementation
-decisions, and tidyverse compatibility</p>
+beneficial. This blog post has two main sections:</p>
+<ol style="list-style-type: decimal">
+<li>a brief overview of the steps required to setup a class that extends
+data frames</li>
+<li>guide to the technical aspects of class invariants and design and
+implementation decisions, and tidyverse compatibility</li>
+</ol>
 <div class="section level3">
 <h3 id="writing-custom-data-class">Writing custom data class<a class="anchor" aria-label="anchor" href="#writing-custom-data-class"></a>
 </h3>
 <p>It is useful to write a class constructor function that can be called
 to create an object of your new class. The functions define below are a
-redacted version (for readability) of functions also defined in the
+redacted version (for readability) of functions defined in this
 package.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">birthdays</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
@@ -221,13 +231,13 @@ alternatively, the subclass can be revoke and the superclass can be
 returned. In almost all cases the superclass (i.e. the base class being
 inherited from) is more general and won’t have the same class invariant
 restrictions.</p>
-<p>For our example class, <code>birthdays</code>, the invariants are a
-column called <code>name</code> which must contain characters, and a
-column called <code>birthday</code> which must contain dates. The order
-of the rows and columns is not considered an invariant property, and
-having extra columns with other names and data types is also allowed.
-The number of rows is also not an invariant as we can have as many
-birthdays as we like in the data object.</p>
+<p>For our example class, <code>&lt;birthdays&gt;</code>, the invariants
+are a column called <code>name</code> which must contain characters, and
+a column called <code>birthday</code> which must contain dates. The
+order of the rows and columns is not considered an invariant property,
+and having extra columns with other names and data types is also
+allowed. The number of rows is also not an invariant as we can have as
+many birthdays as we like in the data object.</p>
 <p>Here we present both cases and considerations and technical details
 of both options. We’ll demonstrate both of these cases with the subset
 function in R (subsetting uses a single square bracket for tabular data,
@@ -250,21 +260,22 @@ object of our class is valid, a so-called validator function.</p>
 of the class’ invariants).</p>
 <p>Now we can show how to error if one of the invariants are removed
 during subsetting.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="st">`</span><span class="at">[.birthdays</span><span class="st">`</span> <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">validate_birthdays</span>(<span class="fu">NextMethod</span>())</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>birthdays[, <span class="sc">-</span><span class="dv">1</span>]</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    Error <span class="cf">in</span> <span class="fu">validate_birthdays</span>(<span class="fu">NextMethod</span>()) <span class="sc">:</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    input must contain <span class="st">'name'</span> and <span class="st">'birthday'</span> columns</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">`[.birthdays`</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="../reference/validate_birthdays.html">validate_birthdays</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">NextMethod</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="va">birthdays</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span></span>
+<span><span class="co">#  Error in validate_birthdays(NextMethod()) :</span></span>
+<span><span class="co">#  input must contain 'name' and 'birthday' columns</span></span></code></pre></div>
 <p>The second design option is the check whether the class is valid, and
 if not downgrade the class to the superclass, in our case a data frame.
 This is done by not only validating the object during subsetting but to
 check whether it is a valid class object, and then either ensuring all
-of the attributes of the subclass – in our case <code>birthdays</code> –
-are maintained, or attributes are stripped and only the attributes of
-the base superclass – in our case <code>data.frame</code> – are
-kept.</p>
+of the attributes of the subclass – in our case
+<code>&lt;birthdays&gt;</code> – are maintained, or attributes are
+stripped and only the attributes of the base superclass – in our case
+<code>data.frame</code> – are kept.</p>
 <p><strong><em>Important note: this section of the post relies heavily
 on</em></strong> <a href="https://github.com/DavisVaughan/2020-06-01_dplyr-vctrs-compat" class="external-link uri">https://github.com/DavisVaughan/2020-06-01_dplyr-vctrs-compat</a>.</p>
 <p>The four functions that are required to be added to ensure our class
@@ -279,7 +290,7 @@ is correctly handled when invaliding it are:</p>
 one as this requires some extra steps.</p>
 <p><code><a href="../reference/birthdays_reconstruct.html">birthdays_reconstruct()</a></code> is a function that contains an
 if-else statement to determine whether the returned object is a
-<code>birthdays</code> or <code>data.frame</code> object.</p>
+<code>&lt;birthdays&gt;</code> or <code>data.frame</code> object.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">birthdays_reconstruct</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">to</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="../reference/birthdays_can_reconstruct.html">birthdays_can_reconstruct</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
@@ -293,10 +304,9 @@ if-else statement to determine whether the returned object is a
 <p>The if-else evaluation is controlled by
 <code><a href="../reference/birthdays_can_reconstruct.html">birthdays_can_reconstruct()</a></code>. This function determines
 whether after subsetting the object is a valid
-<code>&lt;birthdays&gt;</code> class. It does this by running the class
-validator, and if validation fails, by throwing an error, it returns
-<code>FALSE</code>, otherwise the function will return
-<code>TRUE</code>.</p>
+<code>&lt;birthdays&gt;</code> class. It check whetther the validator
+fails, in which case it returns <code>FALSE</code>, otherwise the
+function will return <code>TRUE</code>.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">birthdays_can_reconstruct</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="co"># check whether input is valid</span></span>
@@ -355,12 +365,11 @@ documentation.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">?</span><span class="va">dplyr_extending</span></span>
 <span><span class="op">?</span><span class="fu">dplyr</span><span class="fu">::</span><span class="va"><a href="https://dplyr.tidyverse.org/reference/dplyr_extending.html" class="external-link">dplyr_reconstruct</a></span></span></code></pre></div>
-<p>As explained in the help documentation {dplyr} also uses two other
-base R functions to perform data manipulation. <code>names&lt;-</code>
-(i.e the names setter function) and <code>[</code> the one-dimensional
-subsetting function. We therefore define these methods for our custom
-class in order for <code><a href="https://dplyr.tidyverse.org/reference/dplyr_extending.html" class="external-link">dplyr_reconstruct()</a></code> to work as
-intended.</p>
+<p>As explained in the help documentation, {dplyr} also uses two base R
+functions to perform data manipulation. <code>names&lt;-</code> (i.e the
+names setter function) and <code>[</code> the one-dimensional subsetting
+function. We therefore define these methods for our custom class in
+order for <code><a href="https://dplyr.tidyverse.org/reference/dplyr_extending.html" class="external-link">dplyr_reconstruct()</a></code> to work as intended.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">`[.birthdays`</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">out</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">NextMethod</a></span><span class="op">(</span><span class="op">)</span></span>
