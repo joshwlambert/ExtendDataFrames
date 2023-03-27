@@ -269,7 +269,7 @@ There is one last option which prevents the hard dependency on a relatively rece
 #' }
 ```
 
-Each of the three options for registering S3 methods has different benefits and downsides, so the choice depends on the specific use-case.
+Each of the three options for registering S3 methods has different benefits and downsides, so the choice depends on the specific use-case. Over time it may be best to use the most up-to-date methods as packages will only maintain for the last handful of R releases[^7].
 
 Compatibility with {vctrs} is also possible using the same mechanism (functions) described in this post, and if interested see  https://github.com/DavisVaughan/2020-06-01_dplyr-vctrs-compat for details.
 
@@ -281,3 +281,4 @@ This blog post is a compendium of information from sources that are linked and c
 [^4]: https://epiverse-trace.github.io/posts/s3-generic/
 [^5]: https://blog.r-project.org/2019/08/19/s3-method-lookup/index.html
 [^6]: https://r-pkgs.org/dependencies-mindset-background.html#sec-dependencies-attach-vs-load
+[^7]: https://www.tidyverse.org/blog/2019/04/r-version-support/
