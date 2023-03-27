@@ -11,7 +11,9 @@ This package acts as a demonstration on how to extend the data frame class in R,
 \seealso{
 Useful links:
 \itemize{
+  \item \url{https://github.com/joshwlambert/ExtendDataFrames}
   \item \url{https://joshwlambert.github.io/ExtendDataFrames/}
+  \item Report bugs at \url{https://github.com/joshwlambert/ExtendDataFrames/issues}
 }
 
 }

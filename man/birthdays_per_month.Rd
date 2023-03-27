@@ -21,7 +21,7 @@ A `birthdays` object
 Count number of birthdays per month in each year from a `<birthdays>` object
 }
 \examples{
-df = data.frame(
+df <- data.frame(
   name = c("kevin", "stacey"),
   birthday = c(as.Date("2001-01-01"), as.Date("2002-01-02"))
 )

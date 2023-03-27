@@ -53,10 +53,11 @@
 #' @return An `birthdays` object (if the input is valid) or a `data.frame`
 #' @keywords internal
 birthdays_reconstruct <- function(x, to) {
+
   if (birthdays_can_reconstruct(x)) {
     df_reconstruct(x, to)
   } else {
-    class(x) <- "data.frame"
+    x <- as.data.frame(x)
     message("Removing crucial column in `<birthdays>` returning `<data.frame>`")
     x
   }
