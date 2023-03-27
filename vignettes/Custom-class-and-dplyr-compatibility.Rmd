@@ -49,12 +49,13 @@ It is therefore clear why data frames are so prevalent. However, they are not wi
 One of the most common extension of the data frame is the `tibble` from the {tibble} R package. Outlined in {tibble}'s 'Tibbles' vignette[^2], `tibble`s offer improvements in printing, subsetting and recycling rules. Another commonly used data frame extension is the `data.table` class from the {data.table} R package [^3]. This class is primarily designed to improve the performance (i.e. speed and efficiency of operations and storage) of working with tabular data in R. 
 
 In the process of developing R software (most likely an R package), a new tabular data class that builds atop data frames can become beneficial. This blog post has two main sections: 
+
 1) a brief overview of  the steps required to setup a class that extends data frames
 2) guide to the technical aspects of class invariants and design and implementation decisions, and tidyverse compatibility 
 
 ### Writing custom data class
 
-It is useful to write a class constructor function that can be called to create an object of your new class. The functions define below are a redacted version (for readability) of functions also defined in the package.
+It is useful to write a class constructor function that can be called to create an object of your new class. The functions define below are a redacted version (for readability) of functions defined in this package.
 
 ```r
 birthdays <- function(x) {
@@ -101,7 +102,7 @@ Useful resources for the "Writing custom data class" section:
 
 Moving onto the second section of the post, in which we discuss the design choices when creating and using S3 classes in R. ***Class invariants*** are members of your class that define it. In other words, without these elements your class does not fulfil its basic definition. It is therefore sensible to make sure that your class contains these elements at all times (or at least after operations have been applied to your class). In cases when the class object contains all the invariants normal service can be continued. However, in the case that an invariant is missing or modified to a non-conformist type (e.g. a date converted to a numer) a decision has to be made. Either the code can error, hopefully giving the user an informative message as to why their modification broke the object; alternatively, the subclass can be revoke and the superclass can be returned. In almost all cases the superclass (i.e. the base class being inherited from) is more general and won't have the same class invariant restrictions. 
 
-For our example class, `birthdays`, the invariants are a column called `name` which must contain characters, and a column called `birthday` which must contain dates. The order of the rows and columns is not considered an invariant property, and having extra columns with other names and data types is also allowed. The number of rows is also not an invariant as we can have as many birthdays as we like in the data object.
+For our example class, `<birthdays>`, the invariants are a column called `name` which must contain characters, and a column called `birthday` which must contain dates. The order of the rows and columns is not considered an invariant property, and having extra columns with other names and data types is also allowed. The number of rows is also not an invariant as we can have as many birthdays as we like in the data object.
 
 Here we present both cases and considerations and technical details of both options. We'll demonstrate both of these cases with the subset function in R (subsetting uses a single square bracket for tabular data, `[`). First the fail-on-subsetting. Before we write the subsetting function it is useful to have a function that checks that an object of our class is valid, a so-called validator function.
 
@@ -130,11 +131,11 @@ Now we can show how to error if one of the invariants are removed during subsett
 }
 
 birthdays[, -1]
-	Error in validate_birthdays(NextMethod()) :
-	input must contain 'name' and 'birthday' columns
+#  Error in validate_birthdays(NextMethod()) :
+#  input must contain 'name' and 'birthday' columns
 ```
 
-The second design option is the check whether the class is valid, and if not downgrade the class to the superclass, in our case a data frame. This is done by not only validating the object during subsetting but to check whether it is a valid class object, and then either ensuring all of the attributes of the subclass -- in our case `birthdays` -- are maintained, or attributes are stripped and only the attributes of the base superclass -- in our case `data.frame` -- are kept. 
+The second design option is the check whether the class is valid, and if not downgrade the class to the superclass, in our case a data frame. This is done by not only validating the object during subsetting but to check whether it is a valid class object, and then either ensuring all of the attributes of the subclass -- in our case `<birthdays>` -- are maintained, or attributes are stripped and only the attributes of the base superclass -- in our case `data.frame` -- are kept. 
 
 ___Important note: this section of the post relies heavily on___ https://github.com/DavisVaughan/2020-06-01_dplyr-vctrs-compat.
 
@@ -147,7 +148,7 @@ The four functions that are required to be added to ensure our class is correctl
 
 We'll tackle the first three first, and then move onto to the last one as this requires some extra steps. 
 
-`birthdays_reconstruct()` is a function that contains an if-else statement to determine whether the returned object is a `birthdays` or `data.frame` object.
+`birthdays_reconstruct()` is a function that contains an if-else statement to determine whether the returned object is a `<birthdays>` or `data.frame` object.
 
 ```{r}
 birthdays_reconstruct <- function(x, to) {
@@ -161,7 +162,7 @@ birthdays_reconstruct <- function(x, to) {
 }
 ```
 
-The if-else evaluation is controlled by `birthdays_can_reconstruct()`. This function determines whether after subsetting the object is a valid `<birthdays>` class. It does this by running the class validator, and if validation fails, by throwing an error, it returns `FALSE`, otherwise the function will return `TRUE`.
+The if-else evaluation is controlled by `birthdays_can_reconstruct()`. This function determines whether after subsetting the object is a valid `<birthdays>` class. It check whetther the validator fails, in which case it returns `FALSE`, otherwise the function will return `TRUE`.
 
 ```{r}
 birthdays_can_reconstruct <- function(x) {
@@ -216,7 +217,7 @@ Information about the generic can be found through the {dplyr} help documentatio
 ?dplyr::dplyr_reconstruct
 ```
 
-As explained in the help documentation {dplyr} also uses two other base R functions to perform data manipulation. 
+As explained in the help documentation, {dplyr} also uses two base R functions to perform data manipulation. 
 `names<-` (i.e the names setter function) and `[` the one-dimensional subsetting function. We therefore define these methods for our custom class in order for `dplyr_reconstruct()` to work as intended.
 
 ```{r}
