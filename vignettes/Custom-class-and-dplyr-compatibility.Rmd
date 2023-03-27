@@ -1,8 +1,8 @@
 ---
-title: "Custom-class-and-dplyr-compatibility"
-output: rmarkdown::html_vignette
+title: "Custom class and {dplyr} compatibility"
+output: bookdown::html_vignette2
 vignette: >
-  %\VignetteIndexEntry{Custom-class-and-dplyr-compatibility}
+  %\VignetteIndexEntry{Custom class and {dplyr} compatibility}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -102,9 +102,12 @@ birthdays_per_month.birthdays <- function(x, ...) {
 }
 ```
 
+::: {.alert .alert-warning}
 Useful resources for the "Writing custom data class" section:
 
 - [extending `tibbles` and their functionality](https://tibble.tidyverse.org/articles/extending.html)
+:::
+
 
 ### Design decision around class invariants
 
@@ -145,7 +148,11 @@ birthdays[, -1]
 
 The second design option is the reconstruct-on-subsetting. This checks whether the class is valid, and if not downgrade the class to the superclass, in our case a data frame. This is done by not only validating the object during subsetting but to check whether it is a valid class object, and then either ensuring all of the attributes of the subclass -- in our case `<birthdays>` -- are maintained, or attributes are stripped and only the attributes of the base superclass -- in our case `data.frame` -- are kept. 
 
-___Important note: this section of the post relies heavily on___ https://github.com/DavisVaughan/2020-06-01_dplyr-vctrs-compat.
+
+
+::: {.alert .alert-warning}
+Important note: this section of the post relies heavily on https://github.com/DavisVaughan/2020-06-01_dplyr-vctrs-compat.
+:::
 
 The four functions that are required to be added to ensure our class is correctly handled when invaliding it are: 
 

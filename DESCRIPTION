@@ -27,6 +27,7 @@ Suggests:
     covr,
     knitr,
     rmarkdown,
+    bookdown,
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
 URL: https://github.com/joshwlambert/ExtendDataFrames, https://joshwlambert.github.io/ExtendDataFrames/

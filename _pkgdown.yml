@@ -1,16 +1,18 @@
 url: https://joshwlambert.github.io/ExtendDataFrames/
 template:
   bootstrap: 5
+  bslib:
+    font_weight_base : 300
 
 reference:
-  - title: birthdays class constructor and validator
-    desc: Class constructro and validator functions
+  - title: Class constructor and validator
+    desc: Class constructor and validator functions
     contents:
     - birthdays
     - validate_birthdays
 
-  - title: birthdays print method
-    desc: A print method for birthdays class
+  - title: Print method
+    desc: A print method for `<birthdays>` class
     contents:
     - print.birthdays
 
@@ -21,8 +23,8 @@ reference:
     - "`names<-.birthdays`"
     - "`$<-.birthdays`"
 
-  - title: accessory methods for birthdays class
-    desc: Functions to compute statistics from birthdays class
+  - title: Accessory methods
+    desc: Functions to compute statistics from `<birthdays>` class
     contents:
     - birthday_paradox
     - birthdays_per_month
