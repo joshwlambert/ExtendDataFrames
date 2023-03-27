@@ -87,9 +87,9 @@ example, We have created the <code>&lt;birthdays&gt;</code> class. It is
 very simple, fundamentally the class just needs two columns, with column
 names: <code>name</code> and <code>birthday</code>. The names must be
 exact (i.e. case- and plural-sensitive), but we’ll come back to this
-aspect later. The role of the class – and it’s important that a well-
-designed class has a role, otherwise just using the build in data frame
-will probably suffice – is to store the name of a person and their
+aspect later. The role of the class – and it’s important that a
+well-designed class has a role, otherwise just using the build in data
+frame will probably suffice – is to store the name of a person and their
 birthday.</p>
 <p>For a full explaination of the functions used in this vignette, look
 at the source code and see the other vignette.</p>
@@ -124,7 +124,7 @@ class attribute.</p>
 <span><span class="co">#&gt; [1] 1 2</span></span></code></pre></div>
 <p>The benefit of extending the data frame class is we inherit all of
 the methods already written for data frames, and can overwrite
-(overload) these method with our own custom
+(overload) these methods with our own custom
 <code>&lt;birthday&gt;</code> methods. We have written a custom
 <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> (<code><a href="../reference/print.birthdays.html">print.birthdays()</a></code>) method and will
 use the inherited <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> and <code><a href="https://rdrr.io/r/utils/str.html" class="external-link">str()</a></code>
@@ -148,14 +148,12 @@ methods.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">birthdays</span><span class="op">)</span></span>
 <span><span class="co">#&gt; A `birthdays` object with 2 rows and 2 cols</span></span>
-<span><span class="va">tmp</span> <span class="op">==</span> <span class="va">birthdays</span></span>
-<span><span class="co">#&gt;   name birthday</span></span>
-<span><span class="co">#&gt; 1 TRUE     TRUE</span></span>
-<span><span class="co">#&gt; 2 TRUE     TRUE</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="va">tmp</span>, <span class="va">birthdays</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
 <p>We can also write custom methods that are not already defined, in
-other words do not already have a define generic function. Here we write
-a <code><a href="../reference/birthdays_per_month.html">birthdays_per_month()</a></code> method which does as it says on the
-tin.</p>
+other words do not already have a defined generic function. Here we
+write a <code><a href="../reference/birthdays_per_month.html">birthdays_per_month()</a></code> method which does as it says
+on the tin.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/birthdays_per_month.html">birthdays_per_month</a></span><span class="op">(</span><span class="va">birthdays</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Jan </span></span>
@@ -177,11 +175,13 @@ it:</p>
 <span><span class="fu"><a href="../reference/validate_birthdays.html">validate_birthdays</a></span><span class="op">(</span><span class="va">birthdays</span><span class="op">)</span></span></code></pre></div>
 <p>For a full explanation of the behaviour in the above code chunk see
 the other vignette.</p>
+<p>Other methods for the class can also be added, for example:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/birthday_paradox.html">birthday_paradox</a></span><span class="op">(</span><span class="va">birthdays</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   num_coincidence prob_coincindence </span></span>
 <span><span class="co">#&gt;       0.000000000       0.002739726</span></span></code></pre></div>
-<p>Another example:</p>
+<p>Another example of making a class with randomised names and
+birthdays:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  name <span class="op">=</span> <span class="fu">randomNames</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/randomNames/man/randomNames.html" class="external-link">randomNames</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span>,</span>
@@ -193,7 +193,21 @@ the other vignette.</p>
 <span>    size <span class="op">=</span> <span class="fl">10</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">birthdays</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/birthdays.html">birthdays</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">birthdays</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/birthdays.html">birthdays</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span></span>
+<span><span class="va">birthdays</span></span>
+<span><span class="co">#&gt; A `birthdays` object with 10 rows and 2 cols</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">birthdays</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                        name   birthday</span></span>
+<span><span class="co">#&gt; 1           Morgan, Kristin 2021-12-24</span></span>
+<span><span class="co">#&gt; 2  Alsdorf-Gellineau, Nicko 2020-06-14</span></span>
+<span><span class="co">#&gt; 3      Devora Rios, Melanie 2021-06-29</span></span>
+<span><span class="co">#&gt; 4         Panyachith, Jacob 2020-06-16</span></span>
+<span><span class="co">#&gt; 5            Nguyen, Reeves 2020-02-02</span></span>
+<span><span class="co">#&gt; 6           Kumar, Mikhaila 2021-10-31</span></span>
+<span><span class="co">#&gt; 7           Ned III, Madame 2020-07-21</span></span>
+<span><span class="co">#&gt; 8          el-Hammoud, Saqr 2020-01-03</span></span>
+<span><span class="co">#&gt; 9         el-Hakim, Thaamir 2021-07-13</span></span>
+<span><span class="co">#&gt; 10            Brooks, Amaka 2021-07-15</span></span></code></pre></div>
   </main>
 </div>
 

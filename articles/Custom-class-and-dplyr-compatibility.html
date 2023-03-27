@@ -135,7 +135,18 @@ a single data type.</p>
 <span><span class="co">#&gt; [3,] "3"  "6"  "9"</span></span></code></pre></div>
 <p>Data frames can even be nested, cells can be data frames or
 lists.</p>
-<p>[INSERT CODE EXAMPLE OF NESTED DF HERE]</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>a <span class="op">=</span> <span class="st">"w"</span>, b <span class="op">=</span> <span class="st">"x"</span><span class="op">)</span></span>
+<span><span class="va">df</span><span class="op">[</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">]</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>c <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"y"</span>, <span class="st">"z"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">df</span></span>
+<span><span class="co">#&gt;      a b</span></span>
+<span><span class="co">#&gt; 1 y, z x</span></span>
+<span></span>
+<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>a <span class="op">=</span> <span class="st">"w"</span>, b <span class="op">=</span> <span class="st">"x"</span><span class="op">)</span></span>
+<span><span class="va">df</span><span class="op">[</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">]</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>c <span class="op">=</span> <span class="st">"y"</span>, d <span class="op">=</span> <span class="st">"z"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">df</span></span>
+<span><span class="co">#&gt;      a b</span></span>
+<span><span class="co">#&gt; 1 y, z x</span></span></code></pre></div>
 <p>It is therefore clear why data frames are so prevalent. However, they
 are not without limitations. They have a relatively basic printing
 method which can fload the R console when the number of columns or rows
@@ -164,13 +175,13 @@ data frames</li>
 implementation decisions, and tidyverse compatibility</li>
 </ol>
 <div class="section level3">
-<h3 id="writing-custom-data-class">Writing custom data class<a class="anchor" aria-label="anchor" href="#writing-custom-data-class"></a>
+<h3 id="writing-a-custom-data-class">Writing a custom data class<a class="anchor" aria-label="anchor" href="#writing-a-custom-data-class"></a>
 </h3>
 <p>It is useful to write a class constructor function that can be called
 to create an object of your new class. The functions define below are a
 redacted version (for readability) of functions defined in this
 package.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">birthdays</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="co"># the vector of classes is required for it to inherit from `data.frame`</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/structure.html" class="external-link">structure</a></span><span class="op">(</span><span class="va">x</span>, class <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"birthdays"</span>, <span class="st">"data.frame"</span><span class="op">)</span><span class="op">)</span></span>
@@ -181,8 +192,9 @@ functionality and thus it will be identical to a data frame due to
 inheritance.</p>
 <p>We can now write as many methods as we want. Here we will show two
 methods, one of which does not require writing a generic and the second
-that does.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+that does. See Adv R<a class="footnote-ref" tabindex="0" data-bs-toggle="popover" data-bs-content='&lt;p&gt;&lt;a href="https://adv-r.hadley.nz/s3.html?q=inherita#s3-inheritance" class="external-link uri"&gt;https://adv-r.hadley.nz/s3.html?q=inherita#s3-inheritance&lt;/a&gt;&lt;/p&gt;'><sup>4</sup></a> and this Epiverse blog post<a class="footnote-ref" tabindex="0" data-bs-toggle="popover" data-bs-content='&lt;p&gt;&lt;a href="https://epiverse-trace.github.io/posts/s3-generic/" class="external-link uri"&gt;https://epiverse-trace.github.io/posts/s3-generic/&lt;/a&gt;&lt;/p&gt;'><sup>5</sup></a> to find out more about
+S3 generics.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">print.birthdays</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span></span>
@@ -227,7 +239,7 @@ However, in the case that an invariant is missing or modified to a
 non-conformist type (e.g. a date converted to a numer) a decision has to
 be made. Either the code can error, hopefully giving the user an
 informative message as to why their modification broke the object;
-alternatively, the subclass can be revoke and the superclass can be
+alternatively, the subclass can be revoked and the superclass can be
 returned. In almost all cases the superclass (i.e. the base class being
 inherited from) is more general and won’t have the same class invariant
 restrictions.</p>
@@ -238,13 +250,14 @@ order of the rows and columns is not considered an invariant property,
 and having extra columns with other names and data types is also
 allowed. The number of rows is also not an invariant as we can have as
 many birthdays as we like in the data object.</p>
-<p>Here we present both cases and considerations and technical details
-of both options. We’ll demonstrate both of these cases with the subset
-function in R (subsetting uses a single square bracket for tabular data,
-<code>[</code>). First the fail-on-subsetting. Before we write the
-subsetting function it is useful to have a function that checks that an
-object of our class is valid, a so-called validator function.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<p>Here we present both cases as well as considerations and technical
+details of both options. We’ll demonstrate both of these cases with the
+subset function in R (subsetting uses a single square bracket for
+tabular data, <code>[</code>). First the fail-on-subsetting. Before we
+write the subsetting function it is useful to have a function that
+checks that an object of our class is valid, a so-called validator
+function.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">validate_birthdays</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span></span>
 <span>    <span class="st">"input must contain 'name' and 'birthday' columns"</span> <span class="op">=</span></span>
@@ -260,7 +273,7 @@ object of our class is valid, a so-called validator function.</p>
 of the class’ invariants).</p>
 <p>Now we can show how to error if one of the invariants are removed
 during subsetting.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">`[.birthdays`</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="../reference/validate_birthdays.html">validate_birthdays</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">NextMethod</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
@@ -268,14 +281,14 @@ during subsetting.</p>
 <span><span class="va">birthdays</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span></span>
 <span><span class="co">#  Error in validate_birthdays(NextMethod()) :</span></span>
 <span><span class="co">#  input must contain 'name' and 'birthday' columns</span></span></code></pre></div>
-<p>The second design option is the check whether the class is valid, and
-if not downgrade the class to the superclass, in our case a data frame.
-This is done by not only validating the object during subsetting but to
-check whether it is a valid class object, and then either ensuring all
-of the attributes of the subclass – in our case
-<code>&lt;birthdays&gt;</code> – are maintained, or attributes are
-stripped and only the attributes of the base superclass – in our case
-<code>data.frame</code> – are kept.</p>
+<p>The second design option is the reconstruct-on-subsetting. This
+checks whether the class is valid, and if not downgrade the class to the
+superclass, in our case a data frame. This is done by not only
+validating the object during subsetting but to check whether it is a
+valid class object, and then either ensuring all of the attributes of
+the subclass – in our case <code>&lt;birthdays&gt;</code> – are
+maintained, or attributes are stripped and only the attributes of the
+base superclass – in our case <code>data.frame</code> – are kept.</p>
 <p><strong><em>Important note: this section of the post relies heavily
 on</em></strong> <a href="https://github.com/DavisVaughan/2020-06-01_dplyr-vctrs-compat" class="external-link uri">https://github.com/DavisVaughan/2020-06-01_dplyr-vctrs-compat</a>.</p>
 <p>The four functions that are required to be added to ensure our class
@@ -291,12 +304,12 @@ one as this requires some extra steps.</p>
 <p><code><a href="../reference/birthdays_reconstruct.html">birthdays_reconstruct()</a></code> is a function that contains an
 if-else statement to determine whether the returned object is a
 <code>&lt;birthdays&gt;</code> or <code>data.frame</code> object.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">birthdays_reconstruct</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">to</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="../reference/birthdays_can_reconstruct.html">birthdays_can_reconstruct</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="fu"><a href="../reference/df_reconstruct.html">df_reconstruct</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">to</span><span class="op">)</span></span>
 <span>  <span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"data.frame"</span></span>
+<span>     <span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"Removing crucial column in `&lt;birthdays&gt;` returning `&lt;data.frame&gt;`"</span><span class="op">)</span></span>
 <span>    <span class="va">x</span></span>
 <span>  <span class="op">}</span></span>
@@ -307,7 +320,7 @@ whether after subsetting the object is a valid
 <code>&lt;birthdays&gt;</code> class. It check whetther the validator
 fails, in which case it returns <code>FALSE</code>, otherwise the
 function will return <code>TRUE</code>.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">birthdays_can_reconstruct</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="co"># check whether input is valid</span></span>
 <span>  <span class="va">valid</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span></span>
@@ -323,7 +336,7 @@ called when the object is judged to be a valid
 <code>&lt;birthdays&gt;</code> object and simply copies the attributes
 over from the <code>&lt;birthdays&gt;</code> class to the object being
 subset.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df_reconstruct</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">to</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">attrs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/attributes.html" class="external-link">attributes</a></span><span class="op">(</span><span class="va">to</span><span class="op">)</span></span>
 <span>  <span class="va">attrs</span><span class="op">$</span><span class="va">names</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
@@ -339,7 +352,7 @@ when invalidated. This design has the benefit that when conducting data
 exploration a user is not faced with an error, but can continue with a
 data frame, while being informed by the message printed to console in
 <code><a href="../reference/birthdays_reconstruct.html">birthdays_reconstruct()</a></code>.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">`[.birthdays`</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">out</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">NextMethod</a></span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="../reference/birthdays_reconstruct.html">birthdays_reconstruct</a></span><span class="op">(</span><span class="va">out</span>, <span class="va">x</span><span class="op">)</span></span>
@@ -355,14 +368,13 @@ function <code>dplyr_reconstruct.birthdays()</code> comes in.
 <code><a href="https://dplyr.tidyverse.org/reference/dplyr_extending.html" class="external-link">dplyr_reconstruct()</a></code> is a generic function exported by
 {dplyr}. It is called in {dplyr} verbs to make sure that the objects are
 restored to the input class when not invalidated.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Registered in `.onLoad()` in zzz.R</span></span>
-<span><span class="va">dplyr_reconstruct.birthdays</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">data</span>, <span class="va">template</span><span class="op">)</span> <span class="op">{</span> <span class="co"># nolint</span></span>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">dplyr_reconstruct.birthdays</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">data</span>, <span class="va">template</span><span class="op">)</span> <span class="op">{</span> <span class="co"># nolint</span></span>
 <span>  <span class="fu"><a href="../reference/birthdays_reconstruct.html">birthdays_reconstruct</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">template</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>Information about the generic can be found through the {dplyr} help
 documentation.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">?</span><span class="va">dplyr_extending</span></span>
 <span><span class="op">?</span><span class="fu">dplyr</span><span class="fu">::</span><span class="va"><a href="https://dplyr.tidyverse.org/reference/dplyr_extending.html" class="external-link">dplyr_reconstruct</a></span></span></code></pre></div>
 <p>As explained in the help documentation, {dplyr} also uses two base R
@@ -370,7 +382,7 @@ functions to perform data manipulation. <code>names&lt;-</code> (i.e the
 names setter function) and <code>[</code> the one-dimensional subsetting
 function. We therefore define these methods for our custom class in
 order for <code><a href="https://dplyr.tidyverse.org/reference/dplyr_extending.html" class="external-link">dplyr_reconstruct()</a></code> to work as intended.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">`[.birthdays`</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">out</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">NextMethod</a></span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="../reference/birthdays_reconstruct.html">birthdays_reconstruct</a></span><span class="op">(</span><span class="va">out</span>, <span class="va">x</span><span class="op">)</span></span>
@@ -381,15 +393,16 @@ order for <code><a href="https://dplyr.tidyverse.org/reference/dplyr_extending.h
 <span>  <span class="fu"><a href="../reference/birthdays_reconstruct.html">birthdays_reconstruct</a></span><span class="op">(</span><span class="va">out</span>, <span class="va">x</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>This wraps up the need for adding function to perform data
-manipulation using the reconstruction design outlined above. However,
-there is some final housekeeping to do. You may have noticed the
-<code># Registered in</code>.onLoad()<code>in zzz.R</code> comment when
-defining <code>dplyr_reconstruct.birthdays()</code> above. This is
-because in order to not depend on the entire {dplyr} package but
-requiring the <code><a href="https://dplyr.tidyverse.org/reference/dplyr_extending.html" class="external-link">dplyr_reconstruct()</a></code> generic we need to
-register this when the package is loaded using the
-<code>.onLoad()</code> function.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+manipulation using the reconstruction design outlined above.</p>
+<p>However, there is some final housekeeping to do. In cases when
+{dplyr} is not a package dependency (either imported or suggested), then
+the S3 generic <code><a href="https://dplyr.tidyverse.org/reference/dplyr_extending.html" class="external-link">dplyr_reconstruct()</a></code> is required to be
+loaded. In R versions before 3.6.0 – this also works for R versions
+later than 3.6.0 – the generic function needs to be registered. This is
+done by writing an <code>.onLoad()</code> function, typically in a file
+called zzz.R. This is included in this package for illustrative
+purpose.</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">.onLoad</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">libname</span>, <span class="va">pkgname</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu">s3_register</span><span class="op">(</span><span class="st">"dplyr::dplyr_reconstruct"</span>, <span class="st">"birthdays"</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -397,9 +410,29 @@ register this when the package is loaded using the
 <p>The <code>s3_register()</code> function used in
 <code>.onLoad()</code> also needed to be added to the package and this
 function is kindly supplied by both {vctrs} and {rlang} unlicensed and
-thus can be copied into another package.</p>
+thus can be copied into another package. See R packages<a class="footnote-ref" tabindex="0" data-bs-toggle="popover" data-bs-content='&lt;p&gt;&lt;a href="https://r-pkgs.org/dependencies-mindset-background.html#sec-dependencies-attach-vs-load" class="external-link uri"&gt;https://r-pkgs.org/dependencies-mindset-background.html#sec-dependencies-attach-vs-load&lt;/a&gt;&lt;/p&gt;'><sup>6</sup></a> for information about
+<code>.onLoad()</code> and attaching and loading in general.</p>
+<p>Since R version 3.6.0 this S3 generic registration happens
+automatically with <code>S3Method()</code> in the package namespace<a class="footnote-ref" tabindex="0" data-bs-toggle="popover" data-bs-content='&lt;p&gt;&lt;a href="https://blog.r-project.org/2019/08/19/s3-method-lookup/index.html" class="external-link uri"&gt;https://blog.r-project.org/2019/08/19/s3-method-lookup/index.html&lt;/a&gt;&lt;/p&gt;'><sup>7</sup></a> using the
+{roxygen2} documentation
+<code>#' @exportS3Method dplyr::dplyr_reconstruct</code>. In this
+package we depend on R &gt;= 3.6.0 and thus can use this mechanism to
+automatically register the {dplyr} generic.</p>
+<p>There is one last option which prevents the hard dependency on a
+relatively recent R version. Since {roxygen2} version 6.1.0, there is
+the <code>@rawNamespace</code> tag which allows insertion of text into
+the NAMESPACE file. Using this tag the following code will check the
+local R version and register the S3 method if equal to or above
+3.6.0.</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">#' @rawNamespace if (getRversion() &gt;= "3.6.0") {</span></span>
+<span><span class="co">#'   S3method(pkg::fun, class)</span></span>
+<span><span class="co">#' }</span></span></code></pre></div>
+<p>Each of the three options for registering S3 methods has different
+benefits and downsides, so the choice depends on the specific
+use-case.</p>
 <p>Compatibility with {vctrs} is also possible using the same mechanism
-(functions) described in this post, and if insterested see <a href="https://github.com/DavisVaughan/2020-06-01_dplyr-vctrs-compat" class="external-link uri">https://github.com/DavisVaughan/2020-06-01_dplyr-vctrs-compat</a>
+(functions) described in this post, and if interested see <a href="https://github.com/DavisVaughan/2020-06-01_dplyr-vctrs-compat" class="external-link uri">https://github.com/DavisVaughan/2020-06-01_dplyr-vctrs-compat</a>
 for details.</p>
 <p>This blog post is a compendium of information from sources that are
 linked and cited throughout. Please refer to those sites for more
