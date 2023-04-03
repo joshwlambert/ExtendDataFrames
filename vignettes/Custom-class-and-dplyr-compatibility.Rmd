@@ -273,6 +273,13 @@ Each of the three options for registering S3 methods has different benefits and 
 
 Compatibility with {vctrs} is also possible using the same mechanism (functions) described in this post, and if interested see  https://github.com/DavisVaughan/2020-06-01_dplyr-vctrs-compat for details.
 
+For other use-cases and discussions of the designs and implementations discussed in this post see:
+
+- [{dials} R package](https://github.com/tidymodels/dials)
+- [{rsample} R package](https://github.com/tidymodels/rsample)
+- [{googledrive} R package](https://github.com/tidyverse/googledrive)
+- [Pull request on {tibble} R package](https://github.com/tidyverse/tibble/issues/890)
+
 This blog post is a compendium of information from sources that are linked and cited throughout. Please refer to those sites for more information and as the primary source for citation in further work.
 
 [^1]: https://adv-r.hadley.nz/s3.html?q=inherita#s3-inheritance
