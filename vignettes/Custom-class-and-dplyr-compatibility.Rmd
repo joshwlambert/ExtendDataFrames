@@ -248,7 +248,7 @@ As explained in the help documentation, {dplyr} also uses two base R functions t
 
 This wraps up the need for adding function to perform data manipulation using the reconstruction design outlined above. 
 
-However, there is some final housekeeping to do. In cases when {dplyr} is not a package dependency (either imported or suggested), then the S3 generic `dplyr_reconstruct()` is required to be loaded. In R versions before 3.6.0 -- this also works for R versions later than 3.6.0 -- the generic function needs to be registered. This is done by writing an `.onLoad()` function, typically in a file called zzz.R. This is included in this package for illustrative purpose.
+However, there is some final housekeeping to do. In cases when {dplyr} is not a package dependency (either imported or suggested), then the S3 generic `dplyr_reconstruct()` is required to be loaded. In R versions before 3.6.0 -- this also works for R versions later than 3.6.0 -- the generic function needs to be registered. This is done by writing an `.onLoad()` function, typically in a file called zzz.R. This is included in this package for illustrative purposes.
 
 ```{r}
 .onLoad <- function(libname, pkgname) {
@@ -257,7 +257,7 @@ However, there is some final housekeeping to do. In cases when {dplyr} is not a 
 }
 ```
 
-The `s3_register()` function used in `.onLoad()` also needed to be added to the package and this function is kindly supplied by both {vctrs} and {rlang} unlicensed and thus can be copied into another package. See R packages[^6] for information about `.onLoad()` and attaching and loading in general.
+The `s3_register()` function used in `.onLoad()` also needs to be added to the package and this function is kindly supplied by both {vctrs} and {rlang} unlicensed and thus can be copied into another package. See R packages[^6] for information about `.onLoad()` and attaching and loading in general.
 
 Since R version 3.6.0 this S3 generic registration happens automatically with `S3Method()` in the package namespace[^5] using the {roxygen2} documentation `#' @exportS3Method dplyr::dplyr_reconstruct`. In this package we depend on R >= 3.6.0 and thus can use this mechanism to automatically register the {dplyr} generic.
 
@@ -269,7 +269,7 @@ There is one last option which prevents the hard dependency on a relatively rece
 #' }
 ```
 
-Each of the three options for registering S3 methods has different benefits and downsides, so the choice depends on the specific use-case. Over time it may be best to use the most up-to-date methods as packages will only maintain for the last handful of R releases[^7].
+Each of the three options for registering S3 methods has different benefits and downsides, so the choice depends on the specific use-case. Over time it may be best to use the most up-to-date methods as packages are usually only maintained for a handful of recent R releases[^7].
 
 Compatibility with {vctrs} is also possible using the same mechanism (functions) described in this post, and if interested see  https://github.com/DavisVaughan/2020-06-01_dplyr-vctrs-compat for details.
 
