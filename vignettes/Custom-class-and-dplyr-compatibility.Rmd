@@ -177,7 +177,7 @@ birthdays_reconstruct <- function(x, to) {
 }
 ```
 
-The if-else evaluation is controlled by `birthdays_can_reconstruct()`. This function determines whether after subsetting the object is a valid `<birthdays>` class. It check whetther the validator fails, in which case it returns `FALSE`, otherwise the function will return `TRUE`.
+The if-else evaluation is controlled by `birthdays_can_reconstruct()`. This function determines whether after subsetting the object is a valid `<birthdays>` class. It checks whether the validator fails, in which case it returns `FALSE`, otherwise the function will return `TRUE`.
 
 ```{r}
 birthdays_can_reconstruct <- function(x) {
